@@ -49,10 +49,10 @@ This is a chatbot powered by IBM's Watson Assistant to provide weather details b
 npm install
 ```
 
-1. Run the application
+2. Run the application
 
 ```
 npm start
 ```
 
-1. Go to `localhost:3000` in the browser to view the application.
+3. Go to `localhost:3000` in the browser to view the application.
