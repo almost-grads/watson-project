@@ -19,6 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 // Setup assistant
 let authenticator;
+let session;
 if (process.env.ASSISTANT_IAM_APIKEY) {
     authenticator = new IamAuthenticator({
         apikey: process.env.ASSISTANT_IAM_APIKEY
@@ -30,20 +31,8 @@ var assistant = new AssistantV2({
     serviceUrl: process.env.ASSISTANT_IAM_URL,
 });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    // render the error page
-    res.status(err.status || 500);
-    res.render('error');
+app.get('/', function(req, res) {
+    res.render('index', { title: "Express" });
 });
 
 app.get('/api/session', function(req, res) {
@@ -64,7 +53,7 @@ app.get('/api/session', function(req, res) {
 app.post('/api/message', function(req, res) {
     // Give assistant some value if the environment variable hasnt been set in order to let the user know
     // that they haven't fully configured the app.
-    let assistant = process.env.ASSISTANT_ID || '<assistant-id>';
+    let assistantId = process.env.ASSISTANT_ID || '<assistant-id>';
     if (!assistantId || assistantId === '<assistant-id>') {
         // Match the format the watson response returns
         return res.json({
@@ -82,9 +71,11 @@ app.post('/api/message', function(req, res) {
         sessionId: req.body.session_id,
         input: {
             message_type: 'text',
-            text: textIn,
+            text: text,
         },
     };
+    // console.log(payload)
+
     assistant.message(payload, function(err, data) {
         if (err) {
             const status = err.code !== undefined && err.code > 0 ? err.code : 500;
@@ -92,6 +83,21 @@ app.post('/api/message', function(req, res) {
         }
         return res.json(data);
     });
+});
+// // catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    next(createError(404));
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
 });
 
 module.exports = app;
